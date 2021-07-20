@@ -1,6 +1,7 @@
 import json
 import pymongo
 from flask import Flask
+from flask import jsonify
 from flask import request
 
 app = Flask(__name__)
@@ -16,16 +17,27 @@ collection = db['kwetu']
 def checkuser():
     body = request.get_json()
     email = body.get('email')
-    if collection.count_documents({"email": email }) > 0:
-        return ('Email Verified', 201 )
+    password = body.get('password')
+    if collection.count_documents({"email": email , "password" : password}) > 0:
+        return jsonify(
+            success= 1 ,
+            data = {'email': email,
+            'password' : password}
+        )
     else:
-        return ('Email Not Found', 202 )
+        return jsonify(
+            success= 0 ,
+            error_message = "invalid creditials")
 
 @app.route('/signup', methods=['POST'])
 def insertUser():
     user = request.get_json()
-    collection.insert_one(user).inserted_id
-    return ('Successfully Registered', 200 )
+    x = collection.insert_one(user)
+    return jsonify(
+        success = 0,
+        data = {'id' : x.inserted_id}
+    )
 
+    
 if __name__ == '__main__':
     app.run()
